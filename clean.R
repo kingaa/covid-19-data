@@ -55,3 +55,17 @@ read_csv("co_fips.csv") %>%
     by=c("fips","state")
   ) %>%
   select(fips,state,county=county.y,date,cases,deaths) -> dat
+
+library(rgdal)
+library(rgeos)
+
+readOGR("maps/cb_2018_us_county_20m.shp") -> map
+map@data %>%
+  select(fips=GEOID) -> map@data
+
+read_csv("co_fips.csv") -> fips
+map[map$fips %in% fips$fips,] -> map
+map@data %>%
+  left_join(fips,by="fips") -> map@data
+
+map %>% saveRDS(file="us_county_map_20m.rds")
